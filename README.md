@@ -388,6 +388,21 @@ fn travel_avg(budget_dict: HashMap<String, f32>) -> PyResult<f32> {
 
 Note that since we want the result to be in float, both sum and count need to be a float type. We are using `f32` here.
 
+As always we need to add it to the module:
+
+```
+/// A Python module implemented in Rust.
+#[pymodule]
+fn pyo3_101(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(say_hello, m)?)?;
+    m.add_function(wrap_pyfunction!(check_reg, m)?)?;
+    m.add_function(wrap_pyfunction!(count_att, m)?)?;
+    m.add_function(wrap_pyfunction!(travel_avg, m)?)?;
+    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+    Ok(())
+}
+```
+
 Next we `marutin develop` and try it out:
 
 ```
@@ -404,6 +419,7 @@ print(p1.travel_avg(budget_dict))
 You can compare the result with a function written in Python if you like. I will leave it for you to try it out yourself.
 
 ---
+
 ## Reference
 
 This is the end of the workshop, there are much more in the usage of PyO3, however, we only have enough time to scratch the surface. Also, to make a usable Python package with PyO3, knowledge in Rust is needed. Here are links to resources that you can keep learning Rust and PyO3:
