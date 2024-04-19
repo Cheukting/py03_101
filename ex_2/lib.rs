@@ -3,8 +3,9 @@ use pyo3::exceptions::PyFileNotFoundError;
 use std::fs::File;
 use std::io::Read;
 
-/// Take name and conference to say hello
+/// Take a name and say hello
 #[pyfunction]
+#[pyo3(signature = (name, conf="the conference".to_string()))]
 fn say_hello(name: String, conf: String) -> PyResult<String> {
     Ok(format!("Hello {}, welcome to {}", name, conf))
 }

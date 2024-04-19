@@ -322,8 +322,9 @@ Now try again, you will see the new error looks more familiar.
 
 Next, let's create an empty file `reg_list.txt` in the working directory and see if it work as intended. After that we will add the name in the list (and few others) to check again.
 
----
+If it is working as intended, we can move on to the next part of the workshop.
 
+---
 
 
 
