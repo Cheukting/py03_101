@@ -26,7 +26,7 @@ cd pyo3_101
 maturin init
 ```
 
-or you can clone this repo with the code in this workshop included in the `ex_*` folders.
+or you can clone this repo with the code in this workshop included in the `ex_*` folders as check points at the end of each session/ exercises.
 
 ## Build settings
 
@@ -224,11 +224,11 @@ Here `#[pyo3(signature = (...))]` is a marco provided my PyO3 to generate `__tex
 >>>
 ```
 
-For more information about function signature, please refer to [the PyO3 user guide](https://pyo3.rs/).
+For more information about function signature, please refer to [the PyO3 user guide](https://pyo3.rs/v0.21.2/function/signature).
 
 ---
 
-## Reading a file
+## Reading a file and handling error
 
 Now, we will read a registration list as a txt file and check if name is on that list. First of all, for using file io in Rust, we need to include some crates:
 
@@ -295,8 +295,7 @@ use pyo3::exceptions::PyFileNotFoundError;
 Then for the function:
 
 ```
-/// Give are gistration list and check if name is in it
-#[pyfunction]
+/// Give a registration list and check if name is in it
 fn check_reg(filename: String, name: String) -> PyResult<String> {
     let file_result = File::open(filename);
     match file_result {
@@ -326,11 +325,88 @@ If it is working as intended, we can move on to the next part of the workshop.
 
 ---
 
+## Python and Rust type conversion
 
+In the last part of exercise 1, you may noteice the marco for the function signature:
 
+```
+#[pyo3(signature = (name, conf="the conference".to_string()))]
+```
+
+There is a `.to_string()` after the string. It is because of there are different string types in Rust. There may not be a one to one conversion between the types. PyO3 also define some native Python types in Rust for users to make interface passing objects between the two. For the table of mapping you may see [the user guide as reference](https://pyo3.rs/v0.21.2/conversions/tables).
+
+So far we have been only using the string type. Let's try using other types.
+
+Let say we want to take a list of attendee as Python list and count how many of them and return as an integer:
+
+```
+/// Give a list of attendee and count
+#[pyfunction]
+fn count_att(att_list: Vec<String>) -> PyResult<usize> {
+    Ok(att_list.len())
+}
+```
+
+And don't forget to add it to the module:
+
+```
+/// A Python module implemented in Rust.
+#[pymodule]
+fn pyo3_101(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(say_hello, m)?)?;
+    m.add_function(wrap_pyfunction!(check_reg, m)?)?;
+    m.add_function(wrap_pyfunction!(count_att, m)?)?;
+    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+    Ok(())
+}
+```
+
+As we see, in Rust we have to define the type of the elements in `Vec`, unlike Python which a list can hold various type of objects.
+
+Next we will take a Python dictionary, storing the travel budget of all the attendees, and we will calculate the average of travel spending, return as float.
+
+As dictionary in Python is map to HashMap in Rust, we will need to include it:
+
+```
+use std::collections::HashMap;
+```
+
+Then for the function:
+```
+/// Give a dictionary of travel budgets and calculate average
+#[pyfunction]
+fn travel_avg(budget_dict: HashMap<String, f32>) -> PyResult<f32> {
+    let mut sum: f32 = 0.0;
+    let mut count: f32 = 0.0;
+    for (_, budget) in budget_dict {
+        sum = sum + budget;
+        count = count + 1.0;
+    }
+    Ok(sum/count)
+}
+```
+
+Note that since we want the result to be in float, both sum and count need to be a float type. We are using `f32` here.
+
+Next we `marutin develop` and try it out:
+
+```
+# test count_att
+budget_dict = {
+"John": 850,
+"Susan": 790,
+"Peter":1030,
+"Judy": 540,
+}
+print(p1.travel_avg(budget_dict))
+```
+
+You can compare the result with a function written in Python if you like. I will leave it for you to try it out yourself.
 
 ---
 ## Reference
+
+This is the end of the workshop, there are much more in the usage of PyO3, however, we only have enough time to scratch the surface. Also, to make a usable Python package with PyO3, knowledge in Rust is needed. Here are links to resources that you can keep learning Rust and PyO3:
 
 - [The Rust Book](https://doc.rust-lang.org/book/title-page.html)
 - [Teach-rs (GitHub repo)](https://github.com/tweedegolf/teach-rs)
