@@ -26,7 +26,7 @@ cd pyo3_101
 maturin init
 ```
 
-or you can clone this repo with the code in this workshop included.
+or you can clone this repo with the code in this workshop included in the `ex_*` folders.
 
 ## Build settings
 
@@ -102,7 +102,7 @@ Last, there are some minor syntax differences, for example defining function wit
 
 In the workshop, we will use *maturin* to build the Rust crate into Python library. In the terminal, type `maturin --help` to see what command options we have.
 
-Note that there are several command that we can build the library. We will use the `develop` command the first time so it will be installed on the virtual enviroment and we can test out the library as we go.
+Note that there are several command that we can build the library. We will use the `develop` command so it will be installed on the virtual environment and we can test out the library as we go.
 
 Let's try `maturin develop` and see what happened. It may take a while for the first time but at the end you will see:
 
@@ -120,9 +120,9 @@ Although you can try it with the Python shell, we will create a `try.py` file so
 Now put some test code in `try.py`:
 
 ```
-from pyo3_101 import sum_as_string
+import pyo3_101 as p1
 
-sum = sum_as_string(1,2)
+sum = p1.sum_as_string(1,2)
 print(f"{sum} as type {type(sum)}")
 ```
 
@@ -131,6 +131,74 @@ and try running the file: `python try.py`
 You can see it works as expected. Now we get the logistics out of the way, we can start developing a very simple "toy" package.
 
 ---
+
+## Hello world
+
+Now, let's add our own function called "say_hello", we will take a name as String and they return a Python String saying hello.
+
+```
+/// Take a name and say hello
+#[pyfunction]
+fn say_hello(name: String) -> PyResult<String> {
+    Ok(format!("Hello {}, how are you today?", name))
+}
+```
+
+Now try to save and type `maturin develop` in the terminal, you will see that our library is built but with a warning:
+
+`warning: function `say_hello` is never used`
+
+It is because we have to add our `say_hello` function to our Python module and it will not be available in the new Python package built. Let's fix it by adding it to the module:
+
+```
+/// A Python module implemented in Rust.
+#[pymodule]
+fn pyo3_101(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(say_hello, m)?)?;
+    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+    Ok(())
+}
+```
+
+and build again with `maturin develop`. This time with no warning.
+
+Now we can test the `say_hello` function in `try.py`:
+
+```
+# test say_hello
+print(p1.say_hello("John"))
+```
+
+Before we move on to the next exercise, let's try one more thing. Let say we will also take the name of the conference and welcoming people to that conference in `say_hello`:
+
+```
+/// Take name and conference to say hello
+#[pyfunction]
+fn say_hello(name: String, conf: String) -> PyResult<String> {
+    Ok(format!("Hello {}, welcome to {}", name, conf))
+}
+```
+
+So now we expect it to work if we develop again and update `try.py`:
+
+```
+# test say_hello
+print(p1.say_hello("John", "PyCon"))
+```
+
+In Python we can pass in the arguments as either positional or keyword arguments, what if we do it like this:
+
+```
+# test say_hello
+print(p1.say_hello(conf = "PyCon", name = "John"))
+```
+
+Do you think it still works? Let's try it now.
+
+---
+
+
+
 
 
 ---

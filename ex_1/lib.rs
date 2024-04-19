@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
 
-/// Take name and conference to say hello
+/// Take a name and say hello
 #[pyfunction]
 fn say_hello(name: String, conf: String) -> PyResult<String> {
     Ok(format!("Hello {}, welcome to {}", name, conf))
