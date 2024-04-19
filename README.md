@@ -197,6 +197,102 @@ Do you think it still works? Let's try it now.
 
 ---
 
+## Reading a file
+
+Now, we will read a registration list as a txt file and check if name is on that list. First of all, for using file io in Rust, we need to include some crates:
+
+```
+use std::fs::File;
+use std::io::Read;
+```
+
+Then we can add a new function:
+
+```
+/// Give are gistration list and check if name is in it
+#[pyfunction]
+fn check_reg(filename: String, name: String) -> PyResult<String> {
+    let mut file = File::open(filename).expect("File not exist");
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    if contents.contains(&name) {
+        Ok("You are registered!".to_string())
+    } else {
+        Ok("Sorry you are not in our list!".to_string())
+    }
+}
+```
+
+Remember to add it to our module:
+
+```
+/// A Python module implemented in Rust.
+#[pymodule]
+fn pyo3_101(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(say_hello, m)?)?;
+    m.add_function(wrap_pyfunction!(check_reg, m)?)?;
+    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+    Ok(())
+}
+```
+
+Now, let's build and try it out:
+
+```
+# test check_reg
+print(p1.check_reg("reg_list.txt", "John"))
+```
+
+Notice that we will now have an error:
+
+`pyo3_runtime.PanicException: no file found: Os { code: 2, kind: NotFound, message: "No such file or directory" }`
+
+This is expected as that file does not exist. In our Rust code:
+
+```
+let mut file = File::open(filename).expect("File not exist");
+```
+
+This state's that Rust will panic and terminate when the file cannot be opened. PyO3 will turn it into a PanicException in Python. In Python, if a file does not exist, we will get an FileNotFoundError instead. So let's see if we can make it raise a FileNotFoundError just like Python.
+
+To understand how to do it, we need to have some understand of how errors are handled in Rust. You can see [this chapter of The Rust Book](https://doc.rust-lang.org/book/ch09-00-error-handling.html) for more information as in this workshop we will not go into details. This is what we will do, first we will include the `PyFileNotFoundError` provided by PyO3:
+
+```
+use pyo3::exceptions::PyFileNotFoundError;
+```
+
+Then for the function:
+
+```
+/// Give are gistration list and check if name is in it
+#[pyfunction]
+fn check_reg(filename: String, name: String) -> PyResult<String> {
+    let file_result = File::open(filename);
+    match file_result {
+        Ok(mut file) => {
+            let mut contents = String::new();
+            file.read_to_string(&mut contents)?;
+            if contents.contains(&name) {
+                Ok("You are registered!".to_string())
+            } else {
+                Ok("Sorry you are not in our list!".to_string())
+            }
+        },
+        Err(_) => {
+            Err(PyFileNotFoundError::new_err("File not exist"))
+        },
+    }
+}
+```
+
+Instead of throwing a panic if file cannot be open, we will catch the result and proceeded as normal if `Ok` and return a `PyFileNotFoundError` if `Err`.
+
+Now try again, you will see the new error looks more familiar.
+
+Next, let's create an empty file `reg_list.txt` in the working directory and see if it work as intended. After that we will add the name in the list (and few others) to check again.
+
+---
+
 
 
 
