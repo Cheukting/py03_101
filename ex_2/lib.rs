@@ -10,7 +10,7 @@ fn say_hello(name: String, conf: String) -> PyResult<String> {
     Ok(format!("Hello {}, welcome to {}", name, conf))
 }
 
-/// Give are gistration list and check if name is in it
+/// Give a registration list and check if name is in it
 #[pyfunction]
 fn check_reg(filename: String, name: String) -> PyResult<String> {
     let file_result = File::open(filename);
