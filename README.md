@@ -169,7 +169,7 @@ Now we can test the `say_hello` function in `try.py`:
 print(p1.say_hello("John"))
 ```
 
-Before we move on to the next exercise, let's try one more thing. Let say we will also take the name of the conference and welcoming people to that conference in `say_hello`:
+It works! Let say we will also take the name of the conference and welcoming people to that conference in `say_hello`:
 
 ```
 /// Take name and conference to say hello
@@ -194,6 +194,37 @@ print(p1.say_hello(conf = "PyCon", name = "John"))
 ```
 
 Do you think it still works? Let's try it now.
+
+Before we move on to the next exercise, let's add one more thing. What if I want the default value if the name of the conference not provided to be "the conference"? We can use function signatures to do so:
+
+```
+/// Take a name and say hello
+#[pyfunction]
+#[pyo3(signature = (name, conf="the conference".to_string()))]
+fn say_hello(name: String, conf: String) -> PyResult<String> {
+    Ok(format!("Hello {}, welcome to {}", name, conf))
+}
+```
+
+Try it now with just the `name` attribute:
+
+```
+# test say_hello
+print(p1.say_hello(name = "John"))
+```
+
+Here `#[pyo3(signature = (...))]` is a marco provided my PyO3 to generate `__text_signature__` attribute for the Python object created. If you are curious, you can go to a Python shell to inspect:
+
+```
+>>> import pyo3_101 as p1
+>>> dir(p1.say_hello)
+['__call__', '__class__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__name__', '__ne__', '__new__', '__qualname__', '__reduce__', '__reduce_ex__', '__repr__', '__self__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__text_signature__']
+>>> p1.say_hello.__text_signature__
+'(name, conf=...)'
+>>>
+```
+
+For more information about function signature, please refer to [the PyO3 user guide](https://pyo3.rs/).
 
 ---
 
