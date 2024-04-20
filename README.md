@@ -132,7 +132,7 @@ You can see it works as expected. Now we get the logistics out of the way, we ca
 
 ---
 
-## Hello world
+## Exercise 1 - Hello world
 
 Now, let's add our own function called "say_hello", we will take a name as String and they return a Python String saying hello.
 
@@ -228,7 +228,7 @@ For more information about function signature, please refer to [the PyO3 user gu
 
 ---
 
-## Reading a file and handling error
+## Exercise 2 - Reading a file and handling error
 
 Now, we will read a registration list as a txt file and check if name is on that list. First of all, for using file io in Rust, we need to include some crates:
 
@@ -325,7 +325,7 @@ If it is working as intended, we can move on to the next part of the workshop.
 
 ---
 
-## Python and Rust type conversion
+## Exercise 3 - Python and Rust type conversion
 
 In the last part of exercise 1, you may noteice the marco for the function signature:
 
