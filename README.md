@@ -55,13 +55,13 @@ On the other hand, Rust code needs to be compiled. So before you run your progra
 
 In Rust, we have crates. [From the Rust Book](https://doc.rust-lang.org/book/ch07-01-packages-and-crates.html): "A crate is the smallest amount of code that the Rust compiler considers at a time.". For simplicity sake, let's think of a similar counterpart in Python. It is like a single .py file. Although since Python and Rust is so different it works very differently, but for the structure in your code, you may say it is the "Python equivalent" for now.
 
-### Marco
+### Macros
 
-"Fundamentally, macros are a way of writing code that writes other code, which is known as metaprogramming." ([see here](https://doc.rust-lang.org/book/ch19-06-macros.html)). In my own word, it is a meta way to plug-in in reusable code. Instead of function, which is called during run time, macros are considered during the compilation. In Rust, there are 2 types of marcos and we will come across them shortly.
+"Fundamentally, macros are a way of writing code that writes other code, which is known as metaprogramming." ([see here](https://doc.rust-lang.org/book/ch19-06-macros.html)). In my own word, it is a meta way to plug-in in reusable code. Instead of function, which is called during run time, macros are considered during the compilation. In Rust, there are 2 types of macros and we will come across them shortly.
 
 ### Panic
 
-"By default, these panics will print a failure message, unwind, clean up the stack, and quit..." ([see here](https://doc.rust-lang.org/book/ch09-01-unrecoverable-errors-with-panic.html)) When somethings goes wrong in out program during run time, a panic will occur and the program will be terminated. This is different from `Exceptions` in Python as in Python we can capture the exception and do something else. In Rust errors are handled differently, we will touch upon that a tiny bit in this workshop. For details, I would recommend you read [chapter 9 of the Rust Book](https://doc.rust-lang.org/book/ch09-00-error-handling.html).
+"By default, these panics will print a failure message, unwind, clean up the stack, and quit..." ([see here](https://doc.rust-lang.org/book/ch09-01-unrecoverable-errors-with-panic.html)) When somethings goes wrong in our program during run time, a panic will occur and the program will be terminated. This is different from `Exceptions` in Python as in Python we can capture the exception and do something else. In Rust errors are handled differently, we will touch upon that a tiny bit in this workshop. For details, I would recommend you read [chapter 9 of the Rust Book](https://doc.rust-lang.org/book/ch09-00-error-handling.html).
 
 ## Write our library code in Rust
 
