@@ -67,7 +67,7 @@ In Rust, we have crates. [From the Rust Book](https://doc.rust-lang.org/book/ch0
 
 We will look at how to write some Rust code to define a Python function and how to add it to our Python module.
 
-In the workshop we do not assume you know how to write Rust and we are not aim to teach Rust. We will explain enough Rust code so you can start writing simple code to taste using PyO3. For resources to learn Rust, please check the [reference session at the end]().
+In the workshop we do not assume you know how to write Rust and we are not aim to teach Rust. We will explain enough Rust code so you can start writing simple code to taste using PyO3. For resources to learn Rust, please check the [reference session at the end](#reference).
 
 If you use `maturin init` to start the project, you will see a lib.rs file being generated and have the following code written as a start.
 
