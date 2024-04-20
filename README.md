@@ -59,6 +59,10 @@ In Rust, we have crates. [From the Rust Book](https://doc.rust-lang.org/book/ch0
 
 "Fundamentally, macros are a way of writing code that writes other code, which is known as metaprogramming." ([see here](https://doc.rust-lang.org/book/ch19-06-macros.html)). In my own word, it is a meta way to plug-in in reusable code. Instead of function, which is called during run time, macros are considered during the compilation. In Rust, there are 2 types of marcos and we will come across them shortly.
 
+### Panic
+
+"By default, these panics will print a failure message, unwind, clean up the stack, and quit..." ([see here](https://doc.rust-lang.org/book/ch09-01-unrecoverable-errors-with-panic.html)) When somethings goes wrong in out program during run time, a panic will occur and the program will be terminated. This is different from `Exceptions` in Python as in Python we can capture the exception and do something else. In Rust errors are handled differently, we will touch upon that a tiny bit in this workshop. For details, I would recommend you read [chapter 9 of the Rust Book](https://doc.rust-lang.org/book/ch09-00-error-handling.html).
+
 ## Write our library code in Rust
 
 We will look at how to write some Rust code to define a Python function and how to add it to our Python module.
