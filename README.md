@@ -69,7 +69,7 @@ We will look at how to write some Rust code to define a Python function and how 
 
 In the workshop we do not assume you know how to write Rust and we are not aim to teach Rust. We will explain enough Rust code so you can start writing simple code to taste using PyO3. For resources to learn Rust, please check the [reference session at the end](#reference).
 
-If you use `maturin init` to start the project, you will see a lib.rs file being generated and have the following code written as a start.
+If you use `maturin init` to start the project, you will see a `lib.rs` file being generated and have the following code written as a start.
 
 ```
 use pyo3::prelude::*;
@@ -92,19 +92,19 @@ Let's analyse this code before we move on.
 
 First of all `use pyo3::prelude::*;` is kinda like `import` in Python, we are using modules from other crates and packages. This line is needed for using PyO3.
 
-Then we have `#[pyfunction]` and `#[pymodule]`, they are *procedural macros*. They act like decorators in Python. It takes come code, modify it, and then give out some code. Kinda like decorators which takes a function, modify it, and they gives out a function.
+Then we have `#[pyfunction]` and `#[pymodule]`, they are **procedural macros**. They act like decorators in Python. It takes come code, modify it, and then give out some code. Kinda like decorators which takes a function, modify it, and they gives out a function.
 
-Next, you will see the other type of marco as `wrap_pyfunction!`. It is *declarative macro*. The syntax is very similar to a function. You can [see here for details](https://doc.rust-lang.org/book/ch19-06-macros.html#declarative-macros-with-macro_rules-for-general-metaprogramming), however, for simplicity sake, we can think of it like a function for now.
+Next, you will see the other type of marco as `wrap_pyfunction!`. It is **declarative macro**. The syntax is very similar to a function. You can [see here for details](https://doc.rust-lang.org/book/ch19-06-macros.html#declarative-macros-with-macro_rules-for-general-metaprogramming), however, for simplicity sake, we can think of it like a function for now.
 
 Next, you may also notice that Rust are typed. For Python we can do duck typing which means that we do not have to declare the type of variables in advance. However, it is not the case for Rust. Since now more and more Python coders start typing their code, you may found it easier if you have the habit of typing in Python. We will touch on some Rust and Python types conversion later in this workshop.
 
-You may notice there is `Ok` at the end of each function. In Rust, it is common practice to return a *Result* enum (`Ok` and `Err`) at the end of the function so that any error can be handled when returned. Again, we are skipping the details, which you can [refer to here](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html). Related to it, there are `?` operators which is used as a shorthand to return the `Err` early if error occurred ([see here](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html#a-shortcut-for-propagating-errors-the--operator)).
+You may notice there is `Ok` at the end of each function. In Rust, it is common practice to return a **Result** enum (`Ok` and `Err`) at the end of the function so that any error can be handled when returned. Again, we are skipping the details, which you can [refer to here](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html). Related to it, there are `?` operators which is used as a shorthand to return the `Err` early if error occurred ([see here](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html#a-shortcut-for-propagating-errors-the--operator)).
 
-Last, there are some minor syntax differences, for example defining function with `fn` instead and `def`. Existence of semicolons `;` and curly brankats `{}`, which are both absent in Python.
+Last, there are some minor syntax differences, for example defining function with `fn` instead and `def`. Existence of semicolons `;` and curly brackets `{}`, which are both absent in Python.
 
 ## How to build the library
 
-In the workshop, we will use *maturin* to build the Rust crate into Python library. In the terminal, type `maturin --help` to see what command options we have.
+In the workshop, we will use **maturin** to build the Rust crate into Python library. In the terminal, type `maturin --help` to see what command options we have.
 
 Note that there are several command that we can build the library. We will use the `develop` command so it will be installed on the virtual environment and we can test out the library as we go.
 
@@ -199,7 +199,7 @@ print(p1.say_hello(conf = "PyCon", name = "John"))
 
 Do you think it still works? Let's try it now.
 
-Before we move on to the next exercise, let's add one more thing. What if I want the default value if the name of the conference not provided to be "the conference"? We can use function signatures to do so:
+Before we move on to the next exercise, let's add one more thing. What if I want the default value when the name of the conference not provided to be "the conference"? We can use function signatures to do so:
 
 ```
 /// Take a name and say hello
@@ -217,7 +217,7 @@ Try it now with just the `name` attribute:
 print(p1.say_hello(name = "John"))
 ```
 
-Here `#[pyo3(signature = (...))]` is a marco provided my PyO3 to generate `__text_signature__` attribute for the Python object created. If you are curious, you can go to a Python shell to inspect:
+Here `#[pyo3(signature = (...))]` is a macro provided by PyO3 to generate `__text_signature__` attribute for the Python object created. If you are curious, you can go to a Python shell to inspect:
 
 ```
 >>> import pyo3_101 as p1
@@ -234,7 +234,7 @@ For more information about function signature, please refer to [the PyO3 user gu
 
 ## Exercise 2 - Reading a file and handling error
 
-Now, we will read a registration list as a txt file and check if name is on that list. First of all, for using file io in Rust, we need to include some crates:
+Now, we will read a registration list as a text file and check if name is on that list. First of all, for using file io in Rust, we need to include some crates:
 
 ```
 use std::fs::File;
@@ -282,13 +282,13 @@ Notice that we will now have an error:
 
 `pyo3_runtime.PanicException: no file found: Os { code: 2, kind: NotFound, message: "No such file or directory" }`
 
-This is expected as that file does not exist. In our Rust code:
+This is expected as that file does not exist. As in our Rust code:
 
 ```
 let mut file = File::open(filename).expect("File not exist");
 ```
 
-This state's that Rust will panic and terminate when the file cannot be opened. PyO3 will turn it into a PanicException in Python. In Python, if a file does not exist, we will get an FileNotFoundError instead. So let's see if we can make it raise a FileNotFoundError just like Python.
+This stated that Rust will panic and terminate when the file cannot be opened. PyO3 will turn it into a **PanicException** in Python. In Python, if a file does not exist, we will get an **FileNotFoundError** instead. So let's make it raising a **FileNotFoundError** just like Python.
 
 To understand how to do it, we need to have some understand of how errors are handled in Rust. You can see [this chapter of The Rust Book](https://doc.rust-lang.org/book/ch09-00-error-handling.html) for more information as in this workshop we will not go into details. This is what we will do, first we will include the `PyFileNotFoundError` provided by PyO3:
 
@@ -331,15 +331,15 @@ If it is working as intended, we can move on to the next part of the workshop.
 
 ## Exercise 3 - Python and Rust type conversion
 
-In the last part of exercise 1, you may noteice the marco for the function signature:
+In the last part of exercise 1, you may notice in the macro for the function signature:
 
 ```
 #[pyo3(signature = (name, conf="the conference".to_string()))]
 ```
 
-There is a `.to_string()` after the string. It is because of there are different string types in Rust. There may not be a one to one conversion between the types. PyO3 also define some native Python types in Rust for users to make interface passing objects between the two. For the table of mapping you may see [the user guide as reference](https://pyo3.rs/v0.21.2/conversions/tables).
+There is a `.to_string()` after the string. It is because there are different string types in Rust. It can be confusing at first as there may not be a one to one conversion between the types for Python and Rust. Other than that, PyO3 also define some native Python types in Rust for users to make interface passing objects between the two. I suggest you keep the table of mapping handy, you can find it as [here in the user guide](https://pyo3.rs/v0.21.2/conversions/tables).
 
-So far we have been only using the string type. Let's try using other types.
+So far we have been only using the string type. Let's try using other types in this exercise.
 
 Let say we want to take a list of attendee as Python list and count how many of them and return as an integer:
 
@@ -421,6 +421,8 @@ print(p1.travel_avg(budget_dict))
 ```
 
 You can compare the result with a function written in Python if you like. I will leave it for you to try it out yourself.
+
+If there are extra time, you can challenge yourself to create more functions using various types of Python objects as arguments and return objects.
 
 ---
 
