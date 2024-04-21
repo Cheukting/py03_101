@@ -6,6 +6,8 @@
 - Make sure having Python 3.8 or above (recommend 3.12)
 - Make sure using virtual environment (recommend pyenv + virtualenv)
 
+*In this workshop we recommend using Unix OS (Mac or Linux) If you have to use Windows, you may encounter problems with Rust and Maturin. You may want to install a VM like [VirtualBox](https://www.virtualbox.org/) for developing Python libraries with PyO3.*
+
 ## Setting up
 
 1. Set up virtual environment and install **maturin**
