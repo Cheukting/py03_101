@@ -302,6 +302,7 @@ Then for the function:
 
 ```
 /// Give a registration list and check if name is in it
+#[pyfunction]
 fn check_reg(filename: String, name: String) -> PyResult<String> {
     let file_result = File::open(filename);
     match file_result {
