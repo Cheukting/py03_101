@@ -20,7 +20,7 @@ pip install maturin
 
 2. Start a project
 
-If you want to start from scratch and write your own Rust code, you can start a new project by
+If you want to start from scratch and write your own module, you can start a new project by
 
 ```
 mkdir pyo3_101
@@ -786,6 +786,97 @@ print(f"Number of attendees are {p1.Attendee.reg_num}")
 ```
 
 You may found it strange why the first attendee created will have `reg_num` 1 instead of 0. I suspect this has something to do with Python interpret the code at run time while Rust is compiled before hand and the class we were referencing is a Python object... this will goes into a rabbit hole of what's happening behind the hood, so let's park this mystery for now and move on to the next exercise. But if you have time, feel free to play with it some more and look into this.
+
+---
+
+## Exercise 7 - Creating Class Decorators
+
+*(caution: in this exercise we will be using [RefCell](https://doc.rust-lang.org/book/ch15-05-interior-mutability.html), which involve some unique concept in Rust regarding [smart pointers](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html). Feel free to study about it at your own time. For now, you can just follow along to finish the exercise)*
+
+Next we will take one step further and create decorators in Rust. Let's try to create one that will **add a log that store all the return output as strings to any Python functions**.
+
+Before we write such decorator, let's look at a [simpler example in the PyO3 documentation](https://pyo3.rs/v0.21.2/class/call). Here a decorator class is created to add a call counter to any function written in Python. It is very similar to what we could have done using pure Python. Create a `__call__` method and return a wrapped function.
+
+One tricky issue being mentioned is that, we cannot do a mutable borrow to self using `&mut self`, as it will create issues during runtime. (See [the documentation page]https://pyo3.rs/v0.21.2/class/call#what-is-the-cell-for for details). So in the example, the `count` attribute is wrapped in `Cell` instead of just an integer. That way, the reference to the `Cell` object does not change, only the value inside changes.
+
+You may think that we can do the same with our design here. However, since we will use `String` to store the log and `Cell` require the value stored can be copied *([this Stackoverflow answer](https://stackoverflow.com/a/72379465) provides a good explanation)*, but `String` cannot *(more precisely, `String` does not have the `Copy` trait, only `Clone` trait)*. So we have to use a smart pointer `RefCell` to make our own borrow and clone the `String` inside ourselves.
+
+If you are confident in writing Rust code and using `RefCell` please try to create your own version of our decorator before looking at the example below. If you are new to Rust, feel free to study the code below to learn how it works.
+
+This is one of the ways to create such decorator:
+
+```
+/// Decorator class for creating logs.
+#[pyclass]
+struct SaveLog {
+    log: RefCell<String>,
+    wraps: Py<PyAny>,
+}
+
+#[pymethods]
+impl SaveLog {
+    #[new]
+    fn __new__(wraps: Py<PyAny>) -> Self {
+        SaveLog {
+            log: RefCell::new(String::new()),
+            wraps: wraps,
+        }
+    }
+    #[getter]
+    fn log(&self) -> String {
+        self.log.borrow().clone()
+    }
+    #[pyo3(signature = (*args, **kwargs))]
+    fn __call__(
+        &self,
+        py: Python<'_>,
+        args: &Bound<'_, PyTuple>,
+        kwargs: Option<&Bound<'_, PyDict>>,
+    ) -> PyResult<Py<PyAny>> {
+        let old_log = self.log.borrow().clone();
+        let ret = self.wraps.call_bound(py, args, kwargs)?;
+        let new_log;
+        if old_log.len() > 0 {
+            new_log = format!("{}\n{}",old_log,ret);
+        } else {
+            new_log = format!("{}",ret);
+        }
+        self.log.replace(new_log);
+        Ok(ret)
+    }
+}
+```
+
+As you can see, it is very similar to the example in the documentation. Instead of printing the count, we will store the result of the call before returning it.
+
+Don't forget to add:
+```
+use pyo3::types::{PyDict, PyTuple};
+```
+and
+```
+use std::cell::RefCell;
+```
+
+and also remember to put this new decorator class in our module:
+
+```
+/// A Python module implemented in Rust.
+#[pymodule]
+fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(say_hello, m)?)?;
+    m.add_function(wrap_pyfunction!(check_reg, m)?)?;
+    m.add_function(wrap_pyfunction!(count_att, m)?)?;
+    m.add_function(wrap_pyfunction!(travel_avg, m)?)?;
+    m.add_class::<Attendee>()?;
+    m.add_class::<Fibonacci>()?;
+    m.add_class::<SaveLog>()?;
+    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+    Ok(())
+}
+```
+
+After writing this decorator, try to use it in some Python code. If you want, you can also create some other decorators to do other things. I will leave the exploration to you. Have fun!
 
 ---
 
