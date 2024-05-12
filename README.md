@@ -6,7 +6,7 @@
 - Make sure having Python 3.8 or above (recommend 3.12)
 - Make sure using virtual environment (recommend pyenv + virtualenv)
 
-*In this workshop we recommend using Unix OS (Mac or Linux) If you have to use Windows, you may encounter problems with Rust and Maturin. You may want to install a VM like [VirtualBox](https://www.virtualbox.org/) for developing Python libraries with PyO3.*
+*In this workshop we recommend using Unix OS (Mac or Linux) If you use Windows, you may encounter problems with Rust and Maturin. For Windows users, you may want to install a VM like [VirtualBox](https://www.virtualbox.org/) for developing Python libraries with PyO3.*
 
 ## Setting up
 
@@ -84,7 +84,7 @@ fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
 
 /// A Python module implemented in Rust.
 #[pymodule]
-fn pyo3_101(_py: Python, m: &PyModule) -> PyResult<()> {
+fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
     Ok(())
 }
@@ -159,7 +159,7 @@ It is because we have to add our `say_hello` function to our Python module and i
 ```
 /// A Python module implemented in Rust.
 #[pymodule]
-fn pyo3_101(_py: Python, m: &PyModule) -> PyResult<()> {
+fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(say_hello, m)?)?;
     m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
     Ok(())
@@ -265,7 +265,7 @@ Remember to add it to our module:
 ```
 /// A Python module implemented in Rust.
 #[pymodule]
-fn pyo3_101(_py: Python, m: &PyModule) -> PyResult<()> {
+fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(say_hello, m)?)?;
     m.add_function(wrap_pyfunction!(check_reg, m)?)?;
     m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
@@ -359,7 +359,7 @@ And don't forget to add it to the module:
 ```
 /// A Python module implemented in Rust.
 #[pymodule]
-fn pyo3_101(_py: Python, m: &PyModule) -> PyResult<()> {
+fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(say_hello, m)?)?;
     m.add_function(wrap_pyfunction!(check_reg, m)?)?;
     m.add_function(wrap_pyfunction!(count_att, m)?)?;
@@ -400,7 +400,7 @@ As always we need to add it to the module:
 ```
 /// A Python module implemented in Rust.
 #[pymodule]
-fn pyo3_101(_py: Python, m: &PyModule) -> PyResult<()> {
+fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(say_hello, m)?)?;
     m.add_function(wrap_pyfunction!(check_reg, m)?)?;
     m.add_function(wrap_pyfunction!(count_att, m)?)?;
@@ -426,6 +426,366 @@ print(p1.travel_avg(budget_dict))
 You can compare the result with a function written in Python if you like. I will leave it for you to try it out yourself.
 
 If there are extra time, you can challenge yourself to create more functions using various types of Python objects as arguments and return objects.
+
+---
+
+## Exercise 4 - Custom Python classes
+
+Now, we know how to create functions and add them in our Python module, how about if I want to create class and methods in our module? Can we do that with PyO3?
+
+Of cause we can, PyO3 provides macros like `#[pyclass]` and `#[pymethods]` for us. In this exercise, we will create an Attendee class.
+
+Before we do that, let me explain a bit about using the `#[pyclass]` macro. It can be used with a Rust [enum](https://doc.rust-lang.org/book/ch06-01-defining-an-enum.html) or [struct](https://doc.rust-lang.org/book/ch05-01-defining-structs.html). In this case, we will use `struct` as we would like the Attendee class acting a bit like a dataclass is Python. So here we have:
+
+```
+/// Class for all attendees.
+#[pyclass]
+struct Attendee {
+    #[pyo3(get)]
+    name: String,
+    #[pyo3(get)]
+    speaker: bool,
+}
+```
+
+We have two attributes for the Attendee class for now. One is the name which will be a string, the other is to indicate if the Attendee is a speaker.
+
+You see we also use the `#[pyo3(get)]` macro. This will create a simple getter for `name` and `speaker`. If both getter and setter is needed, i.e. if the attributes are mutable, then we will use `#[pyo3(get, set)]`. You can also set custom getters and setters which we will do a bit later in this exercise.
+
+Next, we need to provide a `__new__` method so the instance of that class can be created with Python code:
+
+```
+#[pymethods]
+impl Attendee {
+    #[new]
+    fn new(name: String, speaker: bool) -> Self {
+        Attendee{
+            name: name,
+            speaker: speaker,
+        }
+    }
+}
+```
+
+See here, we use `#[pymethods]` since `__new__`  would be a method for our Attendee class. We then create the method in Rust, so it follow the Rust [method syntax](https://doc.rust-lang.org/book/ch05-03-method-syntax.html) of using `impl` to create and return a new struct. Note that we use the `#[new]` macro so it will be become `__new__` menthod in Python.
+
+Last, don't forget to add the Attendee class in our module:
+
+```
+/// A Python module implemented in Rust.
+#[pymodule]
+fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(say_hello, m)?)?;
+    m.add_function(wrap_pyfunction!(check_reg, m)?)?;
+    m.add_function(wrap_pyfunction!(count_att, m)?)?;
+    m.add_function(wrap_pyfunction!(travel_avg, m)?)?;
+    m.add_class::<Attendee>()?;
+    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+    Ok(())
+}
+```
+
+Now we can `maturin develop` and try it out with Python script:
+
+```
+# test Attendee
+me = p1.Attendee('Cheuk', True)
+print(me.name, me.speaker)
+```
+
+But this is not good, if we try this:
+
+```
+# test Attendee
+me = p1.Attendee('', True)
+print(me.name, me.speaker)
+```
+
+Even the name is an empty string, it will still work. We should be able to do some check and handle error better. Let's change up the `new` method:
+
+```
+#[pymethods]
+impl Attendee {
+    #[new]
+    fn new(name: String, speaker: bool) -> PyResult<Self> {
+        if name.len() == 0 {
+            Err(PyValueError::new_err("Please enter a name"))
+        } else {
+            Ok(
+                Attendee{
+                    name: name,
+                    speaker: speaker,
+                }
+            )
+        }
+    }
+}
+```
+
+We also need to add this:
+
+```
+use pyo3::exceptions::PyValueError;
+```
+
+As we would like to use the `PyValueError`.
+
+This time we will return a `PyResult` and be able to do error handling like we did in exercise 2. Try again with an empty string as name and you will get an error this time instead.
+
+It's time for some custom getter and setter. First, let's write a getter for `name` so it will return the name in all caps for easy reading. Within the `impl Attendee` and after `fn new`, add:
+
+```
+#[getter]
+fn get_name(&self) -> PyResult<String> {
+    Ok(self.name.to_uppercase())
+}
+```
+
+Next, we want to create a custom setter for name which will do the same check as `new`. Within the `impl Attendee` and after `fn get_name`, add:
+
+```
+#[setter]
+fn set_name(&mut self, name:String) -> PyResult<()> {
+    if name.len() == 0 {
+        Err(PyValueError::new_err("Please enter a name"))
+    } else {
+        self.name = name;
+        Ok(())
+    }
+}
+```
+
+There are 2 things to note here, first for `self` that we pass in as the 1st argument for name, it need to be mutable since it is a setter, so we will need `&mut` instead of `&`, which we used in getter. Both `&mut` and `&` will pass `self` as a reference.
+
+Second, for the setter, we do not return anything if there's no error, so the return type is `PyResult<()>`, while the getter will return a string.
+
+You can also now remove the line `#[pyo3(get)]` above name when we define the struct Attendee. But it will still work if you keep it there. It is more tidy to remove it though.
+
+Now `maturin develop` and play with it with some Python code to try it out. I will leave this to you.
+
+---
+
+## Exercise 5 - Creating iterators in Rust
+
+*(this is a bonus exercise since someone has asked how to create iterators using PyO3)*
+
+Now, after learning how to create custom Python classes, we can try to create an iterator for Python in Rust. Let's look at how we can create an iterator in Rust, for example in the Rust book, there is [an example of create an iterator that generate Fibonacci numbers](https://doc.rust-lang.org/rust-by-example/trait/iter.html).
+
+We will try to create the same but use PyO3 to make it into something that can be used in Python. If you are confident, try doing it yourself before following the steps below.
+
+First, let's create the class:
+
+```
+/// Iterator class for Fibonacci numbers.
+#[pyclass]
+struct Fibonacci {
+    curr: u32,
+    next: u32,
+}
+```
+
+Then, we will need to define `__new__`:
+
+```
+#[pymethods]
+impl Fibonacci {
+    #[new]
+    fn new() -> PyResult<Self> {
+        Ok(Fibonacci { curr: 0, next: 1 })
+    }
+}
+```
+
+Since for a Python iterator, we need `__iter__` and `__next__` to be implemented. Let's go ahead and do it. Within `impl Fibonacci`, after `new` add:
+
+```
+fn __iter__(& self) -> PyResult<Self> {
+    Ok(Fibonacci { curr: self.curr, next: self.next })
+}
+fn __next__(&mut self) -> PyResult<u32> {
+    let current = self.curr;
+
+    self.curr = self.next;
+    self.next = current + self.next;
+
+    Ok(current)
+}
+```
+
+Note that for `__iter__` we will make a copy of `self`.
+
+Don't forget to add it to our module:
+
+```
+/// A Python module implemented in Rust.
+#[pymodule]
+fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(say_hello, m)?)?;
+    m.add_function(wrap_pyfunction!(check_reg, m)?)?;
+    m.add_function(wrap_pyfunction!(count_att, m)?)?;
+    m.add_function(wrap_pyfunction!(travel_avg, m)?)?;
+    m.add_class::<Attendee>()?;
+    m.add_class::<Fibonacci>()?;
+    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+    Ok(())
+}
+```
+
+Now let's `maturin develop` and try it out in Python. I will leave this to you.
+
+Right now this iterator does not have an end so we cannot use it in a `for` loop. If you try it in a `for` loop ~~you will get an endless loop (in theory)~~ it will stop when the integer overflow. This is bad, let's add an option to cap out the maximum number that it can generate.
+
+First, we need an extra attribute:
+
+```
+#[pyclass]
+struct Fibonacci {
+    curr: u32,
+    next: u32,
+    max: u32,
+}
+```
+
+Then we need to update `new` and `__iter__`:
+
+```
+#[new]
+fn new(max: u32) -> PyResult<Self> {
+    Ok(Fibonacci { curr: 0, next: 1, max: max})
+}
+fn __iter__(& self) -> PyResult<Self> {
+    Ok(Fibonacci { curr: self.curr, next: self.next, max: self.max })
+}
+```
+Next, we need to incorporate a check to stop the iteration in `__next__` using `StopIteration` in Python. To do that:
+
+```
+fn __next__(&mut self) -> PyResult<u32> {
+    if self.next > self.max {
+        Err(PyStopIteration::new_err("Reaching the end."))
+    } else {
+        let current = self.curr;
+
+        self.curr = self.next;
+        self.next = current + self.next;
+
+        Ok(current)
+    }
+}
+```
+
+Since we use `PyStopIteration`, don't forget to add:
+
+```
+use pyo3::exceptions::PyStopIteration;
+```
+
+Now we can add a cap to the numbers by doing something like:
+
+```
+for num in p1.Fibonacci(9999):
+    print(num)
+```
+
+in Python. However, we can make it better by adding a default value so:
+
+```
+for num in p1.Fibonacci():
+    print(num)
+```
+
+will stop when it is going to overflow. To do that, we can use the `#[pyo3(signature = (...))]` macro like we do in exercise 1:
+
+```
+#[new]
+#[pyo3(signature = (max=u32::MAX/2))]
+fn new(max: u32) -> PyResult<Self> {
+    Ok(Fibonacci { curr: 0, next: 1, max: max})
+}
+```
+
+Note that `u32::MAX` is the maximum number that a `u32` can store. We need to divide it by two as we do not want to attempt adding two huge numbers in `self.next = current + self.next;` that will cause an overflow.
+
+Now it's time to test it out and have a play with it. Technically, you can now also create Python generators. Feel free to create something else yourself before moving on to the next exercise.
+
+---
+
+## Exercise 6 - Class methods and attributes
+
+Let's dive deeper into creating our own class. In the previous exercise we have created a Python class that allow us to create instances with attributes. However, there are cases that we would like to have Class methods and attributes. Here we will look at how to do that.
+
+Now we would like to automatically generate a registration number when an Attendee is created. We would change the Attendee struct to this:
+
+```
+#[pyclass]
+struct Attendee {
+    #[pyo3(get)]
+    reg_num: u32,
+    name: String,
+    #[pyo3(get)]
+    speaker: bool,
+}
+```
+
+Then we will store the counter of the number of registration as a class attribute. To declare a class attribute using PyO3, we can do this. Within `impl Attendee`, add:
+
+```
+#[classattr]
+fn reg_num() -> u32 {
+    0
+}
+```
+
+As you can see it is an unsigned integer with the initial value as 0. Next we want the `__new__` method to use this attribute when creating a new Attendee. To do this, we can make the `new` function a class method as well using `#[classmethod]`. Let's update the `new` function as:
+
+```
+#[new]
+#[classmethod]
+fn new(cls: &Bound<'_, PyType>, name: String, speaker: bool) -> PyResult<Self> {
+    if name.len() == 0 {
+        Err(PyValueError::new_err("Please enter a name"))
+    } else {
+        let cur_num: u32 = cls.getattr("reg_num")?.extract()?;
+        cls.setattr("reg_num", cur_num + 1)?;
+        Ok(
+            Attendee{
+                reg_num: cur_num,
+                name: name,
+                speaker: speaker,
+            }
+        )
+    }
+}
+```
+
+As a class method, the first argument is a pointer to the Python class `Attendee` itself. We can then use `getattr` to get back the value of the attribute `reg_num` and then convert it to a Rust integer using `extract`. Both methods will return a `Result` there for we add the `?` to get back the value if `Ok`. We then use `setattr` to increate the class attribute by 1 and then add the number to our new attendee created.
+
+Also, don't forget to add this:
+```
+use pyo3::types::PyType;
+```
+
+Since we use `PyType` in the first argument.
+
+Now, lets test it out to see if it works as expected:
+
+```
+# test Attendee
+print(f"Number of attendees are {p1.Attendee.reg_num}")
+
+me = p1.Attendee('Cheuk', True)
+print(me.name, me.speaker, me.reg_num)
+print(f"Number of attendees are {p1.Attendee.reg_num}")
+
+keynote = p1.Attendee('John', True)
+print(keynote.name, keynote.speaker, keynote.reg_num)
+keynote.name = 'Jon'
+print(keynote.name, keynote.speaker, keynote.reg_num)
+
+print(f"Number of attendees are {p1.Attendee.reg_num}")
+```
+
+You may found it strange why the first attendee created will have `reg_num` 1 instead of 0. I suspect this has something to do with Python interpret the code at run time while Rust is compiled before hand and the class we were referencing is a Python object... this will goes into a rabbit hole of what's happening behind the hood, so let's park this mystery for now and move on to the next exercise. But if you have time, feel free to play with it some more and look into this.
 
 ---
 
