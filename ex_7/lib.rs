@@ -73,7 +73,7 @@ struct Attendee {
 #[pymethods]
 impl Attendee {
     #[classattr]
-    fn reg_num() -> u32 {
+    fn cur_reg_num() -> u32 {
         0
     }
     #[new]
@@ -82,11 +82,11 @@ impl Attendee {
         if name.len() == 0 {
             Err(PyValueError::new_err("Please enter a name"))
         } else {
-            let cur_num: u32 = cls.getattr("reg_num")?.extract()?;
-            cls.setattr("reg_num", cur_num + 1)?;
+            let cur_reg_num: u32 = cls.getattr("cur_reg_num")?.extract()?;
+            cls.setattr("cur_reg_num", cur_reg_num + 1)?;
             Ok(
                 Attendee{
-                    reg_num: cur_num,
+                    reg_num: cur_reg_num,
                     name: name,
                     speaker: speaker,
                 }

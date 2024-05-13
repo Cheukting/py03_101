@@ -731,7 +731,7 @@ Then we will store the counter of the number of registration as a class attribut
 
 ```
 #[classattr]
-fn reg_num() -> u32 {
+fn cur_reg_num() -> u32 {
     0
 }
 ```
@@ -745,11 +745,11 @@ fn new(cls: &Bound<'_, PyType>, name: String, speaker: bool) -> PyResult<Self> {
     if name.len() == 0 {
         Err(PyValueError::new_err("Please enter a name"))
     } else {
-        let cur_num: u32 = cls.getattr("reg_num")?.extract()?;
-        cls.setattr("reg_num", cur_num + 1)?;
+        let cur_reg_num: u32 = cls.getattr("cur_reg_num")?.extract()?;
+        cls.setattr("cur_reg_num", cur_reg_num + 1)?;
         Ok(
             Attendee{
-                reg_num: cur_num,
+                reg_num: cur_reg_num,
                 name: name,
                 speaker: speaker,
             }
@@ -758,7 +758,7 @@ fn new(cls: &Bound<'_, PyType>, name: String, speaker: bool) -> PyResult<Self> {
 }
 ```
 
-As a class method, the first argument is a pointer to the Python class `Attendee` itself. We can then use `getattr` to get back the value of the attribute `reg_num` and then convert it to a Rust integer using `extract`. Both methods will return a `Result` there for we add the `?` to get back the value if `Ok`. We then use `setattr` to increate the class attribute by 1 and then add the number to our new attendee created.
+As a class method, the first argument is a pointer to the Python class `Attendee` itself. We can then use `getattr` to get back the value of the attribute `cur_reg_num` and then convert it to a Rust integer using `extract`. Both methods will return a `Result` therefore we add the `?` to get back the value if `Ok`. We then use `setattr` to increate the class attribute by 1 and then add the number to our new attendee created.
 
 Also, don't forget to add this:
 ```
@@ -771,21 +771,21 @@ Now, lets test it out to see if it works as expected:
 
 ```
 # test Attendee
-print(f"Number of attendees are {p1.Attendee.reg_num}")
+print(f"Number of attendees are {p1.Attendee.cur_reg_num}")
 
 me = p1.Attendee('Cheuk', True)
 print(me.name, me.speaker, me.reg_num)
-print(f"Number of attendees are {p1.Attendee.reg_num}")
+print(f"Number of attendees are {p1.Attendee.cur_reg_num}")
 
 keynote = p1.Attendee('John', True)
 print(keynote.name, keynote.speaker, keynote.reg_num)
 keynote.name = 'Jon'
 print(keynote.name, keynote.speaker, keynote.reg_num)
 
-print(f"Number of attendees are {p1.Attendee.reg_num}")
+print(f"Number of attendees are {p1.Attendee.cur_reg_num}")
 ```
 
-You may found it strange why the first attendee created will have `reg_num` 1 instead of 0. I suspect this has something to do with Python interpret the code at run time while Rust is compiled before hand and the class we were referencing is a Python object... this will goes into a rabbit hole of what's happening behind the hood, so let's park this mystery for now and move on to the next exercise. But if you have time, feel free to play with it some more and look into this.
+Feel free to create another class attribute and class methods before moving to the next exercise.
 
 ---
 
