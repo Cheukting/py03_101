@@ -758,7 +758,7 @@ fn new(cls: &Bound<'_, PyType>, name: String, speaker: bool) -> PyResult<Self> {
 }
 ```
 
-As a class method, the first argument is a smart pointer to the Python class `Attendee` itself *([check here](https://pyo3.rs/v0.21.2/types#pyo3s-smart-pointers) for explanation regarding `Bound` smart pointers)*. We can then use `getattr` to get back the value of the attribute `cur_reg_num` and then convert it to a Rust integer using `extract`. Both methods will return a `Result` therefore we add the `?` to get back the value if `Ok`. We then use `setattr` to increate the class attribute by 1 and then add the number to our new attendee created.
+As a class method, the first argument is a smart pointer to the Python class `Attendee` itself ([check here](https://pyo3.rs/v0.21.2/types#pyo3s-smart-pointers) for explanation regarding `Bound` smart pointers). We can then use `getattr` to get back the value of the attribute `cur_reg_num` and then convert it to a Rust integer using `extract`. Both methods will return a `Result` therefore we add the `?` to get back the value if `Ok`. We then use `setattr` to increate the class attribute by 1 and then add the number to our new attendee created.
 
 Also, don't forget to add this:
 ```
@@ -799,7 +799,7 @@ Before we write such decorator, let's look at a [simpler example in the PyO3 doc
 
 One tricky issue being mentioned is that, we cannot do a mutable borrow to self using `&mut self`, as it will create issues during runtime. (See [the documentation page](https://pyo3.rs/v0.21.2/class/call#what-is-the-cell-for) for details). So in the example, the `count` attribute is wrapped in `Cell` instead of just an integer. That way, the reference to the `Cell` object does not change, only the value inside changes.
 
-You may think that we can do the same with our design here. However, since we will use `String` to store the log and `Cell` require the value stored can be copied *([this Stackoverflow answer](https://stackoverflow.com/a/72379465) provides a good explanation)*, but `String` cannot *(more precisely, `String` does not have the `Copy` trait, only `Clone` trait)*. So we have to use a smart pointer `RefCell` to make our own borrow and clone the `String` inside ourselves.
+You may think that we can do the same with our design here. However, since we will use `String` to store the log and `Cell` require the value stored can be copied ([this Stackoverflow answer](https://stackoverflow.com/a/72379465) provides a good explanation), but `String` cannot (more precisely, `String` does not have the `Copy` trait, only `Clone` trait). So we have to use a smart pointer `RefCell` to make our own borrow and clone the `String` inside ourselves.
 
 If you are confident in writing Rust code and using `RefCell` please try to create your own version of our decorator before looking at the example below. If you are new to Rust, feel free to study the code below to learn how it works.
 
