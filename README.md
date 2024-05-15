@@ -39,9 +39,20 @@ Note that we have 2 toml files:
 
 I am sure pyproject.toml is familiar to most of you. It holds the Python library information of the Python library that we are building.
 
-For Cargo.toml, it stores the build settings for compiling the Rust crate that can be access by Python.
+For Cargo.toml, it stores the build settings for compiling the Rust crate that can be access by Python. Including the following:
+
+* [package] — Defines a package.
+* name — The name of the package.
+* version — The version of the package.
+* edition — The Rust edition.
+* [lib] — Library target settings.
+* name — The name of the target.
+* crate-type — The crate types to generate.
+* [dependencies] — Package library dependencies.
 
 Let's spend a few minute to inspect the two files.
+
+*(Please make sure you are using the right version os PyO3, in this workshop we are using version __0.21.2__)*
 
 ## Different between Python and Rust
 
