@@ -901,5 +901,6 @@ After writing this decorator, try to use it in some Python code. If you want, yo
 This is the end of the workshop, there are much more in the usage of PyO3, however, we only have enough time to scratch the surface. Also, to make a usable Python package with PyO3, knowledge in Rust is needed. Here are links to resources that you can keep learning Rust and PyO3:
 
 - [The Rust Book](https://doc.rust-lang.org/book/title-page.html)
+- [Rust by Example](https://doc.rust-lang.org/rust-by-example/)
 - [Teach-rs (GitHub repo)](https://github.com/tweedegolf/teach-rs)
 - [The PyO3 user guide](https://pyo3.rs/)
