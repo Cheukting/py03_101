@@ -904,3 +904,9 @@ This is the end of the workshop, there are much more in the usage of PyO3, howev
 - [Rust by Example](https://doc.rust-lang.org/rust-by-example/)
 - [Teach-rs (GitHub repo)](https://github.com/tweedegolf/teach-rs)
 - [The PyO3 user guide](https://pyo3.rs/)
+
+---
+
+## Support this workshop
+
+This workshop is created by Cheuk and is open source for everyone to use (under MIT license). Please consider sponsoring Cheuk's work via [GitHub Sponsor](https://github.com/sponsors/Cheukting).
