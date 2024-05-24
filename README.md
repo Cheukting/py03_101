@@ -6,7 +6,12 @@
 - Make sure having Python 3.8 or above (recommend 3.12)
 - Make sure using virtual environment (recommend pyenv + virtualenv)
 
-*In this workshop we recommend using Unix OS (Mac or Linux) If you use Windows, you may encounter problems with Rust and Maturin. For Windows users, you may want to install a VM like [VirtualBox](https://www.virtualbox.org/) for developing Python libraries with PyO3.*
+## Windows checklist
+
+In this workshop we recommend using Unix OS (Mac or Linux). *If you use Windows, you may encounter problems with Rust and Maturin.* To minimise issues that you may encounter, please go through the extra checklist below:
+
+- Install the [c++ build tools](https://visualstudio.microsoft.com/downloads/)
+- [Check the `dll` files are linked correctly](https://pyo3.rs/v0.21.2/faq#im-trying-to-call-python-from-rust-but-i-get-status_dll_not_found-or-status_entrypoint_not_found)
 
 ## Setting up
 
