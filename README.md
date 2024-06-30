@@ -89,7 +89,7 @@ In the workshop we do not assume you know how to write Rust and we are not aim t
 
 If you use `maturin init` to start the project, you will see a `lib.rs` file being generated and have the following code written as a start.
 
-```
+```rust
 use pyo3::prelude::*;
 
 /// Formats the sum of two numbers as string.
@@ -141,7 +141,7 @@ Although you can try it with the Python shell, we will create a `try.py` file so
 
 Now put some test code in `try.py`:
 
-```
+```python
 import pyo3_101 as p1
 
 sum = p1.sum_as_string(1,2)
@@ -158,7 +158,7 @@ You can see it works as expected. Now we get the logistics out of the way, we ca
 
 Now, let's add our own function called "say_hello", we will take a name as String and they return a Python String saying hello.
 
-```
+```rust
 /// Take a name and say hello
 #[pyfunction]
 fn say_hello(name: String) -> PyResult<String> {
@@ -172,7 +172,7 @@ Now try to save and type `maturin develop` in the terminal, you will see that ou
 
 It is because we have to add our `say_hello` function to our Python module and it will not be available in the new Python package built. Let's fix it by adding it to the module:
 
-```
+```rust
 /// A Python module implemented in Rust.
 #[pymodule]
 fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -186,14 +186,14 @@ and build again with `maturin develop`. This time with no warning.
 
 Now we can test the `say_hello` function in `try.py`:
 
-```
+```python
 # test say_hello
 print(p1.say_hello("John"))
 ```
 
 It works! Let say we will also take the name of the conference and welcoming people to that conference in `say_hello`:
 
-```
+```rust
 /// Take name and conference to say hello
 #[pyfunction]
 fn say_hello(name: String, conf: String) -> PyResult<String> {
@@ -203,14 +203,14 @@ fn say_hello(name: String, conf: String) -> PyResult<String> {
 
 So now we expect it to work if we develop again and update `try.py`:
 
-```
+```python
 # test say_hello
 print(p1.say_hello("John", "PyCon"))
 ```
 
 In Python we can pass in the arguments as either positional or keyword arguments, what if we do it like this:
 
-```
+```python
 # test say_hello
 print(p1.say_hello(conf = "PyCon", name = "John"))
 ```
@@ -219,7 +219,7 @@ Do you think it still works? Let's try it now.
 
 Before we move on to the next exercise, let's add one more thing. What if I want the default value when the name of the conference not provided to be "the conference"? We can use function signatures to do so:
 
-```
+```rust
 /// Take a name and say hello
 #[pyfunction]
 #[pyo3(signature = (name, conf="the conference".to_string()))]
@@ -230,14 +230,14 @@ fn say_hello(name: String, conf: String) -> PyResult<String> {
 
 Try it now with just the `name` attribute:
 
-```
+```python
 # test say_hello
 print(p1.say_hello(name = "John"))
 ```
 
 Here `#[pyo3(signature = (...))]` is a macro provided by PyO3 to generate `__text_signature__` attribute for the Python object created. If you are curious, you can go to a Python shell to inspect:
 
-```
+```python
 >>> import pyo3_101 as p1
 >>> dir(p1.say_hello)
 ['__call__', '__class__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__name__', '__ne__', '__new__', '__qualname__', '__reduce__', '__reduce_ex__', '__repr__', '__self__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__text_signature__']
@@ -254,14 +254,14 @@ For more information about function signature, please refer to [the PyO3 user gu
 
 Now, we will read a registration list as a text file and check if name is on that list. First of all, for using file io in Rust, we need to include some crates:
 
-```
+```rust
 use std::fs::File;
 use std::io::Read;
 ```
 
 Then we can add a new function:
 
-```
+```rust
 /// Give are gistration list and check if name is in it
 #[pyfunction]
 fn check_reg(filename: String, name: String) -> PyResult<String> {
@@ -278,7 +278,7 @@ fn check_reg(filename: String, name: String) -> PyResult<String> {
 
 Remember to add it to our module:
 
-```
+```rust
 /// A Python module implemented in Rust.
 #[pymodule]
 fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -291,7 +291,7 @@ fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
 Now, let's build and try it out:
 
-```
+```python
 # test check_reg
 print(p1.check_reg("reg_list.txt", "John"))
 ```
@@ -302,7 +302,7 @@ Notice that we will now have an error:
 
 This is expected as that file does not exist. As in our Rust code:
 
-```
+```rust
 let mut file = File::open(filename).expect("File not exist");
 ```
 
@@ -310,13 +310,13 @@ This stated that Rust will panic and terminate when the file cannot be opened. P
 
 To understand how to do it, we need to have some understand of how errors are handled in Rust. You can see [this chapter of The Rust Book](https://doc.rust-lang.org/book/ch09-00-error-handling.html) for more information as in this workshop we will not go into details. This is what we will do, first we will include the `PyFileNotFoundError` provided by PyO3:
 
-```
+```rust
 use pyo3::exceptions::PyFileNotFoundError;
 ```
 
 Then for the function:
 
-```
+```rust
 /// Give a registration list and check if name is in it
 #[pyfunction]
 fn check_reg(filename: String, name: String) -> PyResult<String> {
@@ -352,7 +352,7 @@ If it is working as intended, we can move on to the next part of the workshop.
 
 In the last part of exercise 1, you may notice in the macro for the function signature:
 
-```
+```rust
 #[pyo3(signature = (name, conf="the conference".to_string()))]
 ```
 
@@ -362,7 +362,7 @@ So far we have been only using the string type. Let's try using other types in t
 
 Let say we want to take a list of attendee as Python list and count how many of them and return as an integer:
 
-```
+```rust
 /// Give a list of attendee and count
 #[pyfunction]
 fn count_att(att_list: Vec<String>) -> PyResult<usize> {
@@ -372,7 +372,7 @@ fn count_att(att_list: Vec<String>) -> PyResult<usize> {
 
 And don't forget to add it to the module:
 
-```
+```rust
 /// A Python module implemented in Rust.
 #[pymodule]
 fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -390,12 +390,12 @@ Next we will take a Python dictionary, storing the travel budget of all the atte
 
 As dictionary in Python is map to HashMap in Rust, we will need to include it:
 
-```
+```rust
 use std::collections::HashMap;
 ```
 
 Then for the function:
-```
+```rust
 /// Give a dictionary of travel budgets and calculate average
 #[pyfunction]
 fn travel_avg(budget_dict: HashMap<String, f32>) -> PyResult<f32> {
@@ -413,7 +413,7 @@ Note that since we want the result to be in float, both sum and count need to be
 
 As always we need to add it to the module:
 
-```
+```rust
 /// A Python module implemented in Rust.
 #[pymodule]
 fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -428,7 +428,7 @@ fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
 Next we `marutin develop` and try it out:
 
-```
+```python
 # test count_att
 budget_dict = {
 "John": 850,
@@ -453,7 +453,7 @@ Of cause we can, PyO3 provides macros like `#[pyclass]` and `#[pymethods]` for u
 
 Before we do that, let me explain a bit about using the `#[pyclass]` macro. It can be used with a Rust [enum](https://doc.rust-lang.org/book/ch06-01-defining-an-enum.html) or [struct](https://doc.rust-lang.org/book/ch05-01-defining-structs.html). In this case, we will use `struct` as we would like the Attendee class acting a bit like a dataclass is Python. So here we have:
 
-```
+```rust
 /// Class for all attendees.
 #[pyclass]
 struct Attendee {
@@ -470,7 +470,7 @@ You see we also use the `#[pyo3(get)]` macro. This will create a simple getter f
 
 Next, we need to provide a `__new__` method so the instance of that class can be created with Python code:
 
-```
+```rust
 #[pymethods]
 impl Attendee {
     #[new]
@@ -487,7 +487,7 @@ See here, we use `#[pymethods]` since `__new__`  would be a method for our Atten
 
 Last, don't forget to add the Attendee class in our module:
 
-```
+```rust
 /// A Python module implemented in Rust.
 #[pymodule]
 fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -503,7 +503,7 @@ fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
 Now we can `maturin develop` and try it out with Python script:
 
-```
+```python
 # test Attendee
 me = p1.Attendee('Cheuk', True)
 print(me.name, me.speaker)
@@ -511,7 +511,7 @@ print(me.name, me.speaker)
 
 But this is not good, if we try this:
 
-```
+```python
 # test Attendee
 me = p1.Attendee('', True)
 print(me.name, me.speaker)
@@ -519,7 +519,7 @@ print(me.name, me.speaker)
 
 Even the name is an empty string, it will still work. We should be able to do some check and handle error better. Let's change up the `new` method:
 
-```
+```rust
 #[pymethods]
 impl Attendee {
     #[new]
@@ -540,7 +540,7 @@ impl Attendee {
 
 We also need to add this:
 
-```
+```rust
 use pyo3::exceptions::PyValueError;
 ```
 
@@ -550,7 +550,7 @@ This time we will return a `PyResult` and be able to do error handling like we d
 
 It's time for some custom getter and setter. First, let's write a getter for `name` so it will return the name in all caps for easy reading. Within the `impl Attendee` and after `fn new`, add:
 
-```
+```rust
 #[getter]
 fn get_name(&self) -> PyResult<String> {
     Ok(self.name.to_uppercase())
@@ -559,7 +559,7 @@ fn get_name(&self) -> PyResult<String> {
 
 Next, we want to create a custom setter for name which will do the same check as `new`. Within the `impl Attendee` and after `fn get_name`, add:
 
-```
+```rust
 #[setter]
 fn set_name(&mut self, name:String) -> PyResult<()> {
     if name.len() == 0 {
@@ -591,7 +591,7 @@ We will try to create the same but use PyO3 to make it into something that can b
 
 First, let's create the class:
 
-```
+```rust
 /// Iterator class for Fibonacci numbers.
 #[pyclass]
 struct Fibonacci {
@@ -602,7 +602,7 @@ struct Fibonacci {
 
 Then, we will need to define `__new__`:
 
-```
+```rust
 #[pymethods]
 impl Fibonacci {
     #[new]
@@ -614,7 +614,7 @@ impl Fibonacci {
 
 Since for a Python iterator, we need `__iter__` and `__next__` to be implemented. Let's go ahead and do it. Within `impl Fibonacci`, after `new` add:
 
-```
+```rust
 fn __iter__(& self) -> PyResult<Self> {
     Ok(Fibonacci { curr: self.curr, next: self.next })
 }
@@ -632,7 +632,7 @@ Note that for `__iter__` we will make a copy of `self`.
 
 Don't forget to add it to our module:
 
-```
+```rust
 /// A Python module implemented in Rust.
 #[pymodule]
 fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -653,7 +653,7 @@ Right now this iterator does not have an end so we cannot use it in a `for` loop
 
 First, we need an extra attribute:
 
-```
+```rust
 #[pyclass]
 struct Fibonacci {
     curr: u32,
@@ -664,7 +664,7 @@ struct Fibonacci {
 
 Then we need to update `new` and `__iter__`:
 
-```
+```rust
 #[new]
 fn new(max: u32) -> PyResult<Self> {
     Ok(Fibonacci { curr: 0, next: 1, max: max})
@@ -675,7 +675,7 @@ fn __iter__(& self) -> PyResult<Self> {
 ```
 Next, we need to incorporate a check to stop the iteration in `__next__` using `StopIteration` in Python. To do that:
 
-```
+```rust
 fn __next__(&mut self) -> PyResult<u32> {
     if self.next > self.max {
         Err(PyStopIteration::new_err("Reaching the end."))
@@ -692,27 +692,27 @@ fn __next__(&mut self) -> PyResult<u32> {
 
 Since we use `PyStopIteration`, don't forget to add:
 
-```
+```rust
 use pyo3::exceptions::PyStopIteration;
 ```
 
 Now we can add a cap to the numbers by doing something like:
 
-```
+```python
 for num in p1.Fibonacci(9999):
     print(num)
 ```
 
 in Python. However, we can make it better by adding a default value so:
 
-```
+```python
 for num in p1.Fibonacci():
     print(num)
 ```
 
 will stop when it is going to overflow. To do that, we can use the `#[pyo3(signature = (...))]` macro like we do in exercise 1:
 
-```
+```rust
 #[new]
 #[pyo3(signature = (max=u32::MAX/2))]
 fn new(max: u32) -> PyResult<Self> {
@@ -732,7 +732,7 @@ Let's dive deeper into creating our own class. In the previous exercise we have 
 
 Now we would like to automatically generate a registration number when an Attendee is created. We would change the Attendee struct to this:
 
-```
+```rust
 #[pyclass]
 struct Attendee {
     #[pyo3(get)]
@@ -745,7 +745,7 @@ struct Attendee {
 
 Then we will store the counter of the number of registration as a class attribute. To declare a class attribute using PyO3, we can do this. Within `impl Attendee`, add:
 
-```
+```rust
 #[classattr]
 fn cur_reg_num() -> u32 {
     0
@@ -754,7 +754,7 @@ fn cur_reg_num() -> u32 {
 
 As you can see it is an unsigned integer with the initial value as 0. Next we want the `__new__` method to use this attribute when creating a new Attendee. To do this, we can make the `new` function a class method as well using `#[classmethod]`. Let's update the `new` function as:
 
-```
+```rust
 #[new]
 #[classmethod]
 fn new(cls: &Bound<'_, PyType>, name: String, speaker: bool) -> PyResult<Self> {
@@ -777,7 +777,7 @@ fn new(cls: &Bound<'_, PyType>, name: String, speaker: bool) -> PyResult<Self> {
 As a class method, the first argument is a smart pointer to the Python class `Attendee` itself ([check here](https://pyo3.rs/v0.21.2/types#pyo3s-smart-pointers) for explanation regarding `Bound` smart pointers). We can then use `getattr` to get back the value of the attribute `cur_reg_num` and then convert it to a Rust integer using `extract`. Both methods will return a `Result` therefore we add the `?` to get back the value if `Ok`. We then use `setattr` to increate the class attribute by 1 and then add the number to our new attendee created.
 
 Also, don't forget to add this:
-```
+```rust
 use pyo3::types::PyType;
 ```
 
@@ -785,7 +785,7 @@ Since we use `PyType` in the first argument.
 
 Now, lets test it out to see if it works as expected:
 
-```
+```python
 # test Attendee
 print(f"Number of attendees are {p1.Attendee.cur_reg_num}")
 
@@ -821,7 +821,7 @@ If you are confident in writing Rust code and using `RefCell` please try to crea
 
 This is one of the ways to create such decorator:
 
-```
+```rust
 /// Decorator class for creating logs.
 #[pyclass]
 struct SaveLog {
@@ -866,17 +866,17 @@ impl SaveLog {
 As you can see, it is very similar to the example in the documentation. Instead of printing the count, we will store the result of the call before returning it.
 
 Don't forget to add:
-```
+```rust
 use pyo3::types::{PyDict, PyTuple};
 ```
 and
-```
+```rust
 use std::cell::RefCell;
 ```
 
 and also remember to put this new decorator class in our module:
 
-```
+```rust
 /// A Python module implemented in Rust.
 #[pymodule]
 fn pyo3_101(m: &Bound<'_, PyModule>) -> PyResult<()> {
