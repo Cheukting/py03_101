@@ -4,7 +4,7 @@
 
 - [Install/ Update Rust](https://www.rust-lang.org/tools/install)
 - Make sure having Python 3.8 or above (recommend 3.12)
-- Make sure using virtual environment (recommend pyenv + virtualenv)
+- Make sure using virtual environment (recommend using uv)
 
 ## Windows checklist
 
@@ -15,12 +15,19 @@ In this workshop we recommend using Unix OS (Mac or Linux). *If you use Windows,
 
 ## Setting up
 
-1. Set up virtual environment and install **maturin**
+1. Create a new working directory
 
 ```
-pyenv virtualenv 3.12.2 pyo3
-pyenv activate pyo3
-pip install maturin
+mkdir pyo3_101
+cd pyo3_101
+```
+
+2. Set up virtual environment and install **maturin**
+
+```
+uv venv .venv
+source .venv/bin/activate
+uv pip install maturin
 ```
 
 2. Start a project
@@ -28,8 +35,6 @@ pip install maturin
 If you want to start from scratch and write your own module, you can start a new project by
 
 ```
-mkdir pyo3_101
-cd pyo3_101
 maturin init
 ```
 
