@@ -30,7 +30,7 @@ source .venv/bin/activate
 uv pip install maturin
 python -m ensurepip --default-pip
 ```
-*Note: the last command is needed as maturin cannot find pip otherwise*
+*Note: the last command is needed as `maturin develop` cannot find pip otherwise*
 
 2. Start a project
 
