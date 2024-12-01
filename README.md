@@ -269,7 +269,7 @@ use std::io::Read;
 Then we can add a new function:
 
 ```rust
-/// Give are gistration list and check if name is in it
+/// Give a registration list and check if name is in it
 #[pyfunction]
 fn check_reg(filename: String, name: String) -> PyResult<String> {
     let mut file = File::open(filename).expect("File not exist");
