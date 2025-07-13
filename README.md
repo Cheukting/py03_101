@@ -1,5 +1,24 @@
 # PyO3 101 - Writing Python modules in Rust
 
+## Table of Contents
+- [Preflight checklist](#preflight-checklist)
+- [Windows checklist](#windows-checklist)
+- [Setting up](#setting-up)
+- [Build settings](#build-settings)
+- [Different between Python and Rust](#different-between-python-and-rust)
+- [Terms used in Rust](#terms-used-in-rust)
+- [Write our library code in Rust](#write-our-library-code-in-rust)
+- [How to build the library](#how-to-build-the-library)
+- [Exercise 1 - Hello world](#exercise-1---hello-world)
+- [Exercise 2 - Reading a file and handling error](#exercise-2---reading-a-file-and-handling-error)
+- [Exercise 3 - Python and Rust type conversion](#exercise-3---python-and-rust-type-conversion)
+- [Exercise 4 - Custom Python classes](#exercise-4---custom-python-classes)
+- [Exercise 5 - Creating iterators in Rust](#exercise-5---creating-iterators-in-rust)
+- [Exercise 6 - Class methods and attributes](#exercise-6---class-methods-and-attributes)
+- [Exercise 7 - Creating Class Decorators](#exercise-7---creating-class-decorators)
+- [Reference](#reference)
+- [Support this workshop](#support-this-workshop)
+
 ## Preflight checklist
 
 - [Install/ Update Rust](https://www.rust-lang.org/tools/install)
