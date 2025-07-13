@@ -1,13 +1,13 @@
-use pyo3::exceptions::PyFileNotFoundError;
-use pyo3::exceptions::PyStopIteration;
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
+use pyo3::exceptions::PyFileNotFoundError;
+use pyo3::exceptions::PyValueError;
+use pyo3::exceptions::PyStopIteration;
 use pyo3::types::PyType;
 use pyo3::types::{PyDict, PyTuple};
-use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-use std::sync::{Arc, Mutex};
+use std::collections::HashMap;
+use std::cell::RefCell;
 
 /// Take a name and say hello
 #[pyfunction]
@@ -29,8 +29,10 @@ fn check_reg(filename: String, name: String) -> PyResult<String> {
             } else {
                 Ok("Sorry you are not in our list!".to_string())
             }
-        }
-        Err(_) => Err(PyFileNotFoundError::new_err("File not exist")),
+        },
+        Err(_) => {
+            Err(PyFileNotFoundError::new_err("File not exist"))
+        },
     }
 }
 
@@ -49,7 +51,7 @@ fn travel_avg(budget_dict: HashMap<String, f32>) -> PyResult<f32> {
         sum = sum + budget;
         count = count + 1.0;
     }
-    Ok(sum / count)
+    Ok(sum/count)
 }
 
 /// Formats the sum of two numbers as string.
@@ -82,11 +84,13 @@ impl Attendee {
         } else {
             let cur_reg_num: u32 = cls.getattr("cur_reg_num")?.extract()?;
             cls.setattr("cur_reg_num", cur_reg_num + 1)?;
-            Ok(Attendee {
-                reg_num: cur_reg_num,
-                name: name,
-                speaker: speaker,
-            })
+            Ok(
+                Attendee{
+                    reg_num: cur_reg_num,
+                    name: name,
+                    speaker: speaker,
+                }
+            )
         }
     }
     #[getter]
@@ -94,7 +98,7 @@ impl Attendee {
         Ok(self.name.to_uppercase())
     }
     #[setter]
-    fn set_name(&mut self, name: String) -> PyResult<()> {
+    fn set_name(&mut self, name:String) -> PyResult<()> {
         if name.len() == 0 {
             Err(PyValueError::new_err("Please enter a name"))
         } else {
@@ -117,18 +121,10 @@ impl Fibonacci {
     #[new]
     #[pyo3(signature = (max=u32::MAX/2))]
     fn new(max: u32) -> PyResult<Self> {
-        Ok(Fibonacci {
-            curr: 0,
-            next: 1,
-            max: max,
-        })
+        Ok(Fibonacci { curr: 0, next: 1, max: max})
     }
-    fn __iter__(&self) -> PyResult<Self> {
-        Ok(Fibonacci {
-            curr: self.curr,
-            next: self.next,
-            max: self.max,
-        })
+    fn __iter__(& self) -> PyResult<Self> {
+        Ok(Fibonacci { curr: self.curr, next: self.next, max: self.max })
     }
     fn __next__(&mut self) -> PyResult<u32> {
         if self.next > self.max {
@@ -147,7 +143,7 @@ impl Fibonacci {
 /// Decorator class for creating logs.
 #[pyclass]
 struct SaveLog {
-    log: Arc<Mutex<String>>,
+    log: RefCell<String>,
     wraps: Py<PyAny>,
 }
 
@@ -156,13 +152,13 @@ impl SaveLog {
     #[new]
     fn __new__(wraps: Py<PyAny>) -> Self {
         SaveLog {
-            log: Arc::new(Mutex::new(String::new())),
+            log: RefCell::new(String::new()),
             wraps: wraps,
         }
     }
     #[getter]
     fn log(&self) -> String {
-        self.log.lock().expect("lock not poisoned").clone()
+        self.log.borrow().clone()
     }
     #[pyo3(signature = (*args, **kwargs))]
     fn __call__(
@@ -171,15 +167,15 @@ impl SaveLog {
         args: &Bound<'_, PyTuple>,
         kwargs: Option<&Bound<'_, PyDict>>,
     ) -> PyResult<Py<PyAny>> {
-        let old_log = self.log();
-        let ret = self.wraps.call(py, args, kwargs)?;
+        let old_log = self.log.borrow().clone();
+        let ret = self.wraps.call_bound(py, args, kwargs)?;
         let new_log;
         if old_log.len() > 0 {
-            new_log = format!("{}\n{}", old_log, ret);
+            new_log = format!("{}\n{}",old_log,ret);
         } else {
-            new_log = format!("{}", ret);
+            new_log = format!("{}",ret);
         }
-        *self.log.lock().expect("lock not poisoned") = new_log;
+        self.log.replace(new_log);
         Ok(ret)
     }
 }
